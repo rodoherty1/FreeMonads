@@ -2,35 +2,34 @@ package io.rob
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import cats.free.Free
-import cats.free.Free.liftF
 import cats.{Id, ~>}
 
-sealed trait StartupActionA[A] extends Product with Serializable
+sealed trait StartupAction[A] extends Product with Serializable
 
-case object StartCluster extends StartupActionA[Unit]
-case object StartEventActorShard extends StartupActionA[ActorRef]
-case class StartKafka(ref: ActorRef) extends StartupActionA[Option[ActorRef]]
+case object StartKamonMonitoring extends StartupAction[Unit]
+case object StartAkkaCluster extends StartupAction[ActorRef]
+case class StartKafka(ref: ActorRef) extends StartupAction[Option[ActorRef]]
 
 object Constructors {
-  type StartupAction[A] = Free[StartupActionA,A]
+  type StartupActionF[A] = Free[StartupAction,A]
 
-  def startCluster: StartupAction[Unit] = liftF[StartupActionA, Unit](StartCluster)
-  def startEventActorShard: StartupAction[ActorRef] = liftF[StartupActionA, ActorRef](StartEventActorShard)
-  def startKafka(ref: ActorRef): StartupAction[Option[ActorRef]] = liftF[StartupActionA, Option[ActorRef]](StartKafka(ref))
+  def startKamonMonitoring: Free[StartupAction, Unit] = Free.liftF(StartKamonMonitoring)
+  def startAkkaCluster: Free[StartupAction, ActorRef] = Free.liftF(StartAkkaCluster)
+  def startKafka(ref: ActorRef): Free[StartupAction, Option[ActorRef]] = Free.liftF(StartKafka(ref))
 }
 
 object Program {
   import Constructors._
 
-  def run: StartupAction[Option[ActorRef]] = for {
-    _          <- startCluster
-    eventActor <- startEventActorShard
-    kafkaActor <- startKafka(eventActor)
+  def run: Free[StartupAction, Option[ActorRef]] = for {
+    _           <- startKamonMonitoring
+    akkaCluster <- startAkkaCluster
+    kafkaActor  <- startKafka(akkaCluster)
   } yield kafkaActor
 }
 
 
-object Interpreter extends (StartupActionA ~> Id) {
+object Interpreter extends (StartupAction ~> Id) {
 
   class MyActor extends Actor {
     override def receive: Receive = {
@@ -38,12 +37,12 @@ object Interpreter extends (StartupActionA ~> Id) {
     }
   }
 
-  implicit val system = ActorSystem()
+  implicit val system: ActorSystem = ActorSystem()
 
-  override def apply[A](fa: StartupActionA[A]): Id[A] = fa match {
-    case StartCluster =>
+  override def apply[A](fa: StartupAction[A]): Id[A] = fa match {
+    case StartKamonMonitoring =>
       println("Starting up the Akka Cluster").asInstanceOf[A]
-    case StartEventActorShard =>
+    case StartAkkaCluster =>
       system.actorOf(Props(new MyActor()), "MyActor").asInstanceOf[A]
     case StartKafka(ref) =>
       Some(ref).asInstanceOf[A]
