@@ -1,4 +1,4 @@
-# FreeMonads
+# Free Monads in Scala
 
 ### Why am I looking into Free Monads?
 Scala Exchange 2017 had a few talks on Tagless Final which is a pattern for building a DSL in Scala.
@@ -19,13 +19,13 @@ Free Monads allow you to define and run a sequence of operations like this ...
 ```scala
 val startupProgram = for {
   _               <- startKamonMonitoring
-  kafka           <- startKafka
   akkaCluster     <- startAkkaCluster
-} yield (kafka, akkaShardRegion)
+  kafka           <- startKafka(akkaCluster)
+} yield (kafka, akkaCluster)
 
 val startupProgramInterpreter: ??? = ???  // We'll get into this!
 
-val (kafka, akka) = startupProgram foldmap startupProgramInterpreter
+val (kafka, akkaCluster) = startupProgram foldmap startupProgramInterpreter
 
 val shutdownProgram = for {
   _ <- stopKamonMonitoring
@@ -35,7 +35,7 @@ val shutdownProgram = for {
 
 val shutdownProgramInterpreter: ??? = ???  // We'll get into this!
 
-val shutdownProgram foldmap shutdownProgramInterpreter
+shutdownProgram foldmap shutdownProgramInterpreter
 ```
 
 * What is ```startKamonMonitoring```, ```startKafka``` and ```startAkkaCluster```?
@@ -73,11 +73,13 @@ Similarly, calls to ```Free.liftF(StartAkkaCluster)``` and ```Free.liftF(StartKa
 ```scala
 val startupProgram = for {
   _               <- startKamonMonitoring
-  kafka           <- startKafka
   akkaCluster     <- startAkkaCluster
+  kafka           <- startKafka(akkaCluster)
 } yield (kafka, akkaCluster)
 ```
+
 **Question** - What does the above expression give us?
+
 **Answer** -  It gives us a case class that represents the sequence of operations we wish to run.
 We refer to this value as our **Program**.  It is an algebraic representation of the work we wish to perform.
 
@@ -88,7 +90,7 @@ We pass our program into an **Interpreter**.  The interpreter knows how to inter
 
 We run our program like this
 ```scala
-val (kafka, akkaCluster) = startuprogram foldMap Interpreter
+val (kafka, akkaCluster) = startupProgram foldMap Interpreter
 ```
 where ```Interpreter``` is defined as follows.
 
@@ -108,14 +110,15 @@ object Interpreter extends (Action ~> Id) {
   }
 }
 ```
-Note that:
+
 * We are pattern matching on instances of ```Action```
-* Then we perform the required work for the given ```Action```
-* Then we return the result of that work.
+* We perform the required work for the given ```Action```
+* We return the result of that work.
 
-This is an **Interpreter** for our **Algebra**.
+This is one possible **Interpreter** for our **Algebra**.
 
-**Question** - But what is ```Action ~> Id```?
+**Question** - What is ```Action ~> Id```?
+
 **Answer** - It is a functional structure called a **Natural Transformation** which will convert instances of ```Action``` in instances of ```cats.Id```.
 
 ```cats.Id``` is defined in the ```cats``` library as ...
