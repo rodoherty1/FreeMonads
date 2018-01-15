@@ -80,7 +80,7 @@ val startupProgram = for {
 
 **Question** - What does the above expression give us?
 
-**Answer** -  It gives us a case class that represents the sequence of operations we wish to run.
+**Answer** -  It gives us an instance of ```Free.FlatMapped``` which contains our sequence of operations that we wish to run.
 We refer to this value as our **Program**.  It is an algebraic representation of the work we wish to perform.
 
 ## How to run your Free Monad?
