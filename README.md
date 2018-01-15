@@ -86,7 +86,7 @@ We refer to this value as our **Program**.  It is an algebraic representation of
 ## How to run your Free Monad?
 This is where we get some pay-off for all this work we have done so far!
 
-We pass our program into an **Interpreter**.  The interpreter knows how to interpret each component of our program and will perform the work we need to be done.
+We create an **Interpreter** and then pass our program into it.  The interpreter knows how to interpret each ```Action``` in our program and it will perform the work we need to be done.
 
 We run our program like this
 ```scala
@@ -143,24 +143,3 @@ All execution occurs on the heap rather than the stack.
 
 ## Error Handling
 Error Handling doesn't come for free.  ```Either``` needs to be explictly used or else the interpreter will throw an exception.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
