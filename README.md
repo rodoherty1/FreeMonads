@@ -65,9 +65,9 @@ So what does ```Free.liftF``` do?
 
 ```cats.free.Free``` is an abstract class with three subclasses; ```Return```, ```Suspend``` and ```FlatMapped```.
 
-When we called ```Free.liftF(StartMonitoring)```, a new instance of ```Free.Suspend[StartMonitoring, Unit]``` was created.
+When we call ```Free.liftF(StartMonitoring)```, a new instance of ```Free.Suspend[StartMonitoring, Unit]``` is created.
 
-Similarly, calls to ```Free.liftF(StartAkkaCluster)``` and ```Free.liftF(StartKafka(ref))``` returned a ```Suspend[StartAkkaCluster, ActorRef]``` and ```Suspend[StartKafka, ActorRef]``` respectively.
+Similarly, calls to ```Free.liftF(StartAkkaCluster)``` and ```Free.liftF(StartKafka(ref))``` return a ```Suspend[StartAkkaCluster, ActorRef]``` and ```Suspend[StartKafka, ActorRef]``` respectively.
 
 ```cats.free.Free.Suspend``` defines a ```flatMap``` function so it can be used in a for-comprehension as follows:
 ```scala
