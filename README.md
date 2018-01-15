@@ -111,9 +111,9 @@ object Interpreter extends (Action ~> Id) {
 }
 ```
 
-* We are pattern matching on instances of ```Action```
-* We perform the required work for the given ```Action```
-* We return the result of that work.
+* The Interpreter pattern matches on instances of ```Action```
+* The Interpreter performs the required work for the given ```Action```
+* The Interpreter returns the result of that work.
 
 This is one possible **Interpreter** for our **Algebra**.
 
